@@ -1,1 +1,3 @@
-# auto_cpp-recursive-delegator
+# C++ static typed recursive delegator template
+
+For example see .h file
