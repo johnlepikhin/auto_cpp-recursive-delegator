@@ -43,6 +43,8 @@ public:
 	}
 };
 
+}
+
 // Example usage
 /*
 template<typename PARENT, typename THIS>
