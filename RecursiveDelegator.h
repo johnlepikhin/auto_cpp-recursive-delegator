@@ -26,20 +26,27 @@ public:
 	virtual void BeforeRecursionHook(THIS *got) {}
 	virtual void AfterRecursionHook(THIS *got) {}
 
-	void Recursive (PARENT *parent)
+	bool Recursive (PARENT *parent)
 	{
 		THIS *got = Process(parent);
 		if (got) {
 			try {
 				BeforeRecursionHook(got);
 				for (auto f : Followers) {
-					f->Recursive(got);
+					bool found = f->Recursive(got);
+					if (found)
+						break;
 				}
 				AfterRecursionHook(got);
+
+				return (true);
 			} catch (...) {
 				AfterRecursionHook(got);
+				throw;
 			}
 		}
+
+		return (false);
 	}
 };
 
