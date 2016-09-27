@@ -13,6 +13,9 @@ template<typename PARENT, typename THIS>
 class Processor
 {
 public:
+	Processor() {};
+	~Processor() {};
+
 	typedef Processor<THIS, void> FollowerType;
 
 	std::vector<FollowerType *> Followers;
@@ -25,7 +28,7 @@ public:
 	virtual THIS *Process(PARENT *parent) = 0;
 
 	virtual void BeforeRecursionHook(THIS *got) {}
-	virtual void AfterRecursionHook(THIS *got, std::exception &exn, bool found) {}
+	virtual void AfterRecursionHook(THIS *got, std::exception *exn, bool found) {}
 
 	bool Recursive (PARENT *parent)
 	{
@@ -33,15 +36,16 @@ public:
 		if (got) {
 			try {
 				BeforeRecursionHook(got);
+				bool found = false;
 				for (auto f : Followers) {
-					bool found = f->Recursive(got);
+					found = f->Recursive(got);
 					if (found)
 						break;
 				}
-				AfterRecursionHook(got, nullptr, found);
+				AfterRecursionHook(got, NULL, found);
 
 				return (true);
-			} catch (std::exception &exc) {
+			} catch (std::exception *exc) {
 				AfterRecursionHook(got, exc, false);
 				throw;
 			}
