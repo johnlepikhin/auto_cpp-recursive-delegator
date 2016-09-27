@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <stdexcept>
 
 namespace RecursiveDelegator {
 
@@ -24,7 +25,7 @@ public:
 	virtual THIS *Process(PARENT *parent) = 0;
 
 	virtual void BeforeRecursionHook(THIS *got) {}
-	virtual void AfterRecursionHook(THIS *got) {}
+	virtual void AfterRecursionHook(THIS *got, std::exception &exn, bool found) {}
 
 	bool Recursive (PARENT *parent)
 	{
@@ -37,11 +38,11 @@ public:
 					if (found)
 						break;
 				}
-				AfterRecursionHook(got);
+				AfterRecursionHook(got, nullptr, found);
 
 				return (true);
-			} catch (...) {
-				AfterRecursionHook(got);
+			} catch (std::exception &exc) {
+				AfterRecursionHook(got, exc, false);
 				throw;
 			}
 		}
