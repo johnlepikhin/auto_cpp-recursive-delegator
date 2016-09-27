@@ -14,7 +14,7 @@ class Processor
 {
 public:
 	Processor() {};
-	~Processor() {};
+	virtual ~Processor() {};
 
 	typedef Processor<THIS, void> FollowerType;
 
