@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include <stdexcept>
+#include <memory>
 
 namespace RecursiveDelegator {
 
@@ -14,7 +15,13 @@ class Processor
 {
 public:
 	Processor() {};
-	virtual ~Processor() {};
+
+	virtual ~Processor()
+	{
+		for (auto i : Followers) {
+			delete i;
+		}
+	};
 
 	typedef Processor<THIS, void> FollowerType;
 
@@ -23,16 +30,18 @@ public:
 	void AddFollower(FollowerType *follower)
 	{
 		Followers.push_back(follower);
-	}
+	};
 
-	virtual THIS *Process(PARENT *parent) = 0;
+	virtual std::shared_ptr<THIS> Process(std::shared_ptr<PARENT> parent) = 0;
 
-	virtual void BeforeRecursionHook(THIS *got) {}
-	virtual void AfterRecursionHook(THIS *got, std::exception *exn, bool found) {}
+	virtual void BeforeRecursionHook(std::shared_ptr<THIS> got) {};
+	virtual void AfterRecursionHook(std::shared_ptr<THIS> got, std::exception *exn, bool found) {};
 
-	bool Recursive (PARENT *parent)
+	Processor<PARENT, void> *AsFollower() { return((Processor<PARENT, void> *)this); }
+
+	bool Recursive (std::shared_ptr<PARENT> parent)
 	{
-		THIS *got = Process(parent);
+		std::shared_ptr<THIS> got = Process(parent);
 		if (got) {
 			try {
 				BeforeRecursionHook(got);
