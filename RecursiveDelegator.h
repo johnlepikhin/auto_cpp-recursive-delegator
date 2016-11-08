@@ -34,8 +34,8 @@ public:
 
 	virtual std::shared_ptr<THIS> Process(std::shared_ptr<PARENT> parent) = 0;
 
-	virtual void BeforeRecursionHook(std::shared_ptr<THIS> got) {};
-	virtual void AfterRecursionHook(std::shared_ptr<THIS> got, std::exception *exn, bool found) {};
+	virtual bool BeforeRecursionHook(std::shared_ptr<THIS> got) { return (true); };
+	virtual bool AfterRecursionHook(std::shared_ptr<THIS> got, const std::exception *exn, bool found) { if (exn) { throw (exn); } else { return (found); }; };
 
 	Processor<PARENT, void> *AsFollower() { return((Processor<PARENT, void> *)this); }
 
@@ -44,19 +44,19 @@ public:
 		std::shared_ptr<THIS> got = Process(parent);
 		if (got) {
 			try {
-				BeforeRecursionHook(got);
-				bool found = false;
-				for (auto f : Followers) {
-					found = f->Recursive(got);
-					if (found)
-						break;
+				if (BeforeRecursionHook(got)) {
+					bool found = false;
+					for (auto f : Followers) {
+						found = f->Recursive(got);
+						if (found)
+							break;
+					}
+					return (AfterRecursionHook(got, NULL, found));
+				} else {
+					return (AfterRecursionHook(got, NULL, false));
 				}
-				AfterRecursionHook(got, NULL, found);
-
-				return (true);
-			} catch (std::exception *exc) {
-				AfterRecursionHook(got, exc, false);
-				throw;
+			} catch (const std::exception &exn) {
+				return (AfterRecursionHook(got, &exn, false));
 			}
 		}
 
