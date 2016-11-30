@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 #ifndef RECURSIVEDELEGATOR_H_
 #define RECURSIVEDELEGATOR_H_
@@ -32,12 +34,12 @@ public:
 		Followers.push_back(follower);
 	};
 
-	virtual std::shared_ptr<THIS> Process(std::shared_ptr<PARENT> parent) = 0;
+	virtual std::shared_ptr<THIS> Process(const std::shared_ptr<PARENT> &parent) = 0;
 
 	virtual bool BeforeRecursionHook(std::shared_ptr<THIS> got) { return (true); };
-	virtual bool AfterRecursionHook(std::shared_ptr<THIS> got, const std::exception *exn, bool found) { if (exn) { throw (exn); } else { return (found); }; };
+	virtual bool AfterRecursionHook(const std::shared_ptr<THIS> &got, const std::exception *exn, bool found) { if (exn) { throw (exn); } else { return (found); }; };
 
-	Processor<PARENT, void> *AsFollower() { return((Processor<PARENT, void> *)this); }
+	Processor<PARENT, void> *AsFollower() { return(reinterpret_cast<Processor<PARENT, void> *>(this)); }
 
 	bool Recursive (std::shared_ptr<PARENT> parent)
 	{
