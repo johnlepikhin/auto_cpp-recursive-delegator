@@ -37,7 +37,7 @@ public:
 	virtual std::shared_ptr<THIS> Process(const std::shared_ptr<PARENT> &parent) = 0;
 
 	virtual bool BeforeRecursionHook(const std::shared_ptr<THIS> &got) { return (true); };
-	virtual bool AfterRecursionHook(const std::shared_ptr<THIS> &got, const std::exception *exn, bool found) { if (exn) { throw (exn); } else { return (found); }; };
+	virtual bool AfterRecursionHook(const std::shared_ptr<THIS> &got, const std::exception *exn, bool found) { if (exn) { throw (*exn); } else { return (found); }; };
 
 	Processor<PARENT, void> *AsFollower() { return(reinterpret_cast<Processor<PARENT, void> *>(this)); }
 
