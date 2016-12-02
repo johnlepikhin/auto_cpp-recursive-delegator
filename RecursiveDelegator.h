@@ -36,33 +36,49 @@ public:
 
 	virtual std::shared_ptr<THIS> Process(const std::shared_ptr<PARENT> &parent) = 0;
 
-	virtual bool BeforeRecursionHook(const std::shared_ptr<THIS> &got) { return (true); };
-	virtual bool AfterRecursionHook(const std::shared_ptr<THIS> &got, const std::exception *exn, bool found) { if (exn) { throw (*exn); } else { return (found); }; };
+	// If returned -1 no followers are allowed
+	// If returned 0 followers must be processed in normal way
+	// If returned >0 do not process followers and return this value
+	virtual int32_t BeforeRecursionHook(const std::shared_ptr<THIS> &got) { return (0); };
+
+
+	virtual int32_t AfterRecursionHook(const std::shared_ptr<THIS> &got, const std::exception *exn, int32_t processed_followers)
+	{
+		if (exn != nullptr) {
+			throw (*exn);
+		} else {
+			return (processed_followers);
+		};
+	};
 
 	Processor<PARENT, void> *AsFollower() { return(reinterpret_cast<Processor<PARENT, void> *>(this)); }
 
-	bool Recursive (std::shared_ptr<PARENT> parent)
+	// Returns -1 if parsing wan't successful
+	// Returns number of processed followers
+	int32_t Recursive (std::shared_ptr<PARENT> parent)
 	{
 		std::shared_ptr<THIS> got = Process(parent);
-		if (got) {
+		if (got != nullptr) {
+			int32_t found = 0;
 			try {
-				if (BeforeRecursionHook(got)) {
-					bool found = false;
+				int32_t result = BeforeRecursionHook(got);
+				if (result == -1) {
+					return (AfterRecursionHook(got, nullptr, 0));
+				} else if (result > 0) {
+					return (AfterRecursionHook(got, nullptr, result));
+				} else if (result == 0) {
 					for (auto f : Followers) {
-						found = f->Recursive(got);
-						if (found)
+						int32_t result = f->Recursive(got);
+						if (result >= 0)
 							break;
 					}
-					return (AfterRecursionHook(got, NULL, found));
-				} else {
-					return (AfterRecursionHook(got, NULL, false));
 				}
 			} catch (const std::exception &exn) {
-				return (AfterRecursionHook(got, &exn, false));
+				return (AfterRecursionHook(got, &exn, found));
 			}
+			return (AfterRecursionHook(got, nullptr, found));
 		}
-
-		return (false);
+		return (-1);
 	}
 };
 
