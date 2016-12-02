@@ -69,8 +69,10 @@ public:
 				} else if (result == 0) {
 					for (auto f : Followers) {
 						int32_t result = f->Recursive(got);
-						if (result >= 0)
+						if (result >= 0) {
+							found++;
 							break;
+						}
 					}
 				}
 			} catch (const std::exception &exn) {
