@@ -16,12 +16,16 @@ template<typename PARENT, typename THIS>
 class Processor
 {
 public:
+	uint16_t RecursiveParents = 0;
+
 	Processor() {};
 
 	virtual ~Processor()
 	{
 		for (auto i : Followers) {
-			delete i;
+			i->RecursiveParents--;
+			if (!i->RecursiveParents)
+				delete i;
 		}
 	};
 
@@ -32,6 +36,7 @@ public:
 	void AddFollower(FollowerType *follower)
 	{
 		Followers.push_back(follower);
+		follower->RecursiveParents++;
 	};
 
 	virtual std::shared_ptr<THIS> Process(const std::shared_ptr<PARENT> &parent) = 0;
